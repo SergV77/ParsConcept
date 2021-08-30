@@ -88,22 +88,73 @@ for k, v in dict(sorted(dict_word.items(), key=lambda x: len(x[1]), reverse=Fals
 # print(dict_word['стерилизаторы'][0] in dict_word['изделия'])
 print_border('КОНЕЦ СИНТАКТИЧЕСКОГО РАЗБОРА SPACY')
 
-# root_count = max(dict_word, key=dict_word.get)
-root_count = max(dict_word.items(), key = lambda x: x[1])[0]
+
+
+for k, v in {k: v for k, v in dict_word.items() if len(v) == max([len(v) for _, v in dict_word.items()])}.items():
+    root_count = k
 print(root_count)
 
+
+
 tree = Tree()
-tree.create_node(max(dict_word, key=dict_word.get).upper(), max(dict_word, key=dict_word.get))  # root node
+tree.create_node(max(dict_word, key=dict_word.get).title(), max(dict_word, key=dict_word.get))  # root node
 
 for k, v in dict_word.items():
     if k != root_count:
         if dict_word[k][0] in dict_word[root_count]:
             if len(v) > 1:
-                tree.create_node(k.upper(), k, parent=root_count)
+                tree.create_node(k.title(), k, parent=root_count)
                 for el in v:
                     tree.create_node(el, parent=k)
 
 tree.show()
+
+##############################################################################
+#                                  ВАРИАНТ 5                                 #
+##############################################################################
+#
+
+# tree = Tree()
+# tree.create_node("Harry", "harry")  # root node
+# tree.create_node("Jane", "jane", parent="harry")
+# tree.create_node("Bill", "bill", parent="harry")
+# tree.create_node("Diane", "diane", parent="jane")
+# tree.create_node("Mary", "mary", parent="diane")
+# tree.create_node("Mark", "mark", parent="jane")
+# tree.show()
+#
+#
+# new_tree = Tree()
+# new_tree.create_node("n1", 1)  # root node
+# new_tree.create_node("n2", 2, parent=1)
+# new_tree.create_node("n3", 3, parent=1)
+# tree.paste('bill', new_tree)
+# tree.show()
+
+
+
+
+
+
+
+
+# root_count = max(dict_word, key=dict_word.get)
+# root_count = max(dict_word.items(), key = lambda x: x[1])[0]
+# print(root_count)
+# tree = Tree()
+# tree.create_node(max(dict_word, key=dict_word.get).title(), max(dict_word, key=dict_word.get))  # root node
+#
+# for k, v in dict_word.items():
+#     if k != root_count:
+#         if dict_word[k][0] in dict_word[root_count]:
+#             if len(v) > 1:
+#                 tree.create_node(k.title(), k, parent=root_count)
+#                 for el in v:
+#                     tree.create_node(el, parent=k)
+#
+# tree.show()
+
+
 
 
 ##############################################################################
@@ -175,6 +226,7 @@ tree.show()
 # spans = doc.sents
 # print(spans)
 
+# doc.user_data["title"] = "Это заголовок"
 # options = {'compact': True, 'font': "Tahoma"}
 # displacy.serve(spans, style='dep', options=options, host='localhost')
 
