@@ -5,6 +5,8 @@ pd.set_option('display.max_columns', None)
 
 nlp = spacy.load("ru_core_news_lg")
 
+# stop_words = nltk.corpus.stopwords.words('russian')
+
 file_name="data/НСИ - закупки.xlsx"
 rb = xlrd.open_workbook(file_name)
 sheet = rb.sheet_by_index(1)
@@ -22,8 +24,11 @@ for el in vals[1:]:
 print_border('СОСТАВЛЕНИЕ ПРЕДЛОЖЕНИЙ')
 test_text = reduce(lambda x, y: x + '. ' + y, text)
 
-print('test_text  -', test_text)
+#
+#
+# print('test_text  -', test_text)
 # print('type(test_text) -', type(test_text))
+
 
 print_border('КОНЕЦ СИНТАКТИЧЕСКОГО РАЗБОРА SPACY')
 #
@@ -37,170 +42,66 @@ print_border('КОНЕЦ СИНТАКТИЧЕСКОГО РАЗБОРА SPACY')
 # print(tmp_text)
 # print(type(tmp_text))
 
+#Анализ частоты слова
+# tmp = tmp_text.replace('.', '').lower().split()
+tmp = test_text.replace('.', '').lower().split()
+# print(tmp)
+# print(type(tmp))
+count_word = Counter(tmp)
+# print(count_word)
 
-def make_dict(array):
-    dict_word = {}
-    for el in array.split('.'):
-        for symb in el.lower().split(' '):
-            if symb not in dict_word.keys():
-                if len(symb) > 3:
-                    dict_word[symb] = [el + '.']
-            else:
-                dict_word[symb].append(el + '.')
-    return dict_word
+t_count = max(count_word, key=count_word.get)
+# print(len(t_count))
 
-
-def change_list(array):
-    dict_word = {}
-    for el in array:
-        # count_word = Counter(tmp)
-        # # print(count_word)
-        for symb in el.lower().split(' '):
-
-            if symb.rstrip(".") not in dict_word.keys():
-                if len(symb) > 3:
-                    dict_word[symb.rstrip(".")] = [el]
-            else:
-                dict_word[symb.rstrip(".")].append(el)
-    return dict_word
+t_unic = {el for el in tmp if len(el) > 3}
+# print(t_unic)
+# print(len(t_unic))
 
 
-def change_list2(array):
+def parsSent(sent):
+    if sent[-2].dep_ == 'ROOT' and sent[-2].pos_ == 'NOUN':
+        return sent[-2].test
 
-    dict_word = {}
-    for el in array:
-        # count_word = Counter(tmp)
-        # # print(count_word)
-        for symb in el.lower().split(' '):
 
-            if symb.rstrip(".") not in dict_word.keys():
-                if len(symb) > 3:
-                    dict_word[symb.rstrip(".")] = [el]
-            else:
-                dict_word[symb.rstrip(".")].append(el)
-    return dict_word
+
+dataSet = pd.DataFrame(0, index=t_unic, columns=t_unic)
+# print(dataSet)
+# print('3 - ', symb)
+dict_word = {}
+for el in test_text.split('.'):
+    for symb in el.lower().split(' '):
+        if symb not in dict_word.keys():
+            if len(symb) > 3:
+                dict_word[symb] = [el + '.']
+        else:
+            dict_word[symb].append(el + '.')
 
 
 # print(dict_word)
 # sort_list = []
-
-dict_word = make_dict(test_text)
 for k, v in dict(sorted(dict_word.items(), key=lambda x: len(x[1]), reverse=False)).items():
-
-    new_list = "".join(v)
-    count_dict = dict(Counter(el.rstrip('.').lower() for el in new_list.split() if len(el) > 3))
-    doc = nlp(new_list)
-    print(new_list)
-    print(count_dict)
-    for sent in doc.sents:
-        for el in sent:
-            if el.dep_ == 'NOUN' and el.pos_ == 'NOUN':
-    #             return el.text
-    # print(spans)
-
-    print(' - ' * 50)
-
-
-
     # if len(v) > 1:
     #     if dict_word[k][0] in dict_word[root_count]:
 
     print(k, ' - ', len(v), v)
 
-
-# dict_word = make_dict(test_text)
-# for k, v in dict(sorted(dict_word.items(), key=lambda x: len(x[1]), reverse=False)).items():
-#     # if len(v) > 1:
-#     #     if dict_word[k][0] in dict_word[root_count]:
-#
-#     print(k, ' - ', len(v), v)
-
 # print(dict_word['стерилизаторы'][0] in dict_word['изделия'])
 print_border('КОНЕЦ СИНТАКТИЧЕСКОГО РАЗБОРА SPACY')
 
 
-##############################################################################
-#                                  ВАРИАНТ 7                                 #
-##############################################################################
-#
-
-# spans = list(doc.sents)
-# print(spans)
-# for el in doc:
-#     print(el)
-# spans = doc.sents
-# print(spans)
-
-
-# doc = nlp(test_text)
-#
-#
-# def parsSent(sent):
-#     for el in sent:
-#         if el.dep_ == 'ROOT' and el.pos_ == 'NOUN':
-#             return el.text
-#
-# tmp_dict = {}
-# for sent in doc.sents:
-#     root = parsSent(sent)
-#     if root != None:
-#         if root.title() not in tmp_dict.keys():
-#             tmp_dict[root.title()] = [sent]
-#         else:
-#             tmp_dict[root.title()].append(sent)
-#         # print(root.title())
-#
-# print(f'------------{"NEW"}-----------------')
-# for k, v in tmp_dict.items():
-#     print(k, ' - ', len(v), v)
-#
-# def parseSent(sent):
-#
-#     root_phrase = ''
-#     amod_phrase = ''
-#     nmod_phrase = ''
-#     nmod_phrase_all = ''
-#     list_root_word = []
-#
-#     if sent[-2].dep_ == 'ROOT' and sent[-2].pos_ == 'NOUN':
-#         root_phrase = root_phrase + ' ' + sent[-2].text
-#         if sent[-3].dep_ == 'amod' and sent[-3].pos_ == 'ADJ':
-#             amod_phrase_all = ''
-#             for word in sent[-2].lefts:
-#                 if word.dep_ == 'amod' and word.pos_ == 'ADJ':
-#                     amod_phrase_all = amod_phrase_all.rstrip() + ' ' + word.text
-#
-#             list_root_word.append((amod_phrase_all + root_phrase, amod_phrase_all.split(' ')[-1] + root_phrase ))
-#
-#     return list_root_word
-
-
-
-
-##############################################################################
-#                                  ВАРИАНТ 6                                 #
-##############################################################################
-#
 
 for k, v in {k: v for k, v in dict_word.items() if len(v) == max([len(v) for _, v in dict_word.items()])}.items():
     root_count = k
 print(root_count)
 
-# new_dict = {}
-# for k, v in dict_word.items():
-#     print(k, ' - ', v)
+print(dict_word)
 
 
-# for k, v in dict_word.items():
-#     dict_word = change_list(v)
-#     new_dict[k] = dict_word
 
-# for key, value in new_dict.items():
-#     for k, v in value.items():
-#         print(key, ' - ', k, ' - ', v)
-#
+
+
 # tree = Tree()
-# tree.create_node(root_count.title(), root_count)  # root node
+# tree.create_node(max(dict_word, key=dict_word.get).title(), max(dict_word, key=dict_word.get))  # root node
 #
 # for k, v in dict_word.items():
 #     if k != root_count:
@@ -217,6 +118,30 @@ print(root_count)
 ##############################################################################
 #
 
+# tree = Tree()
+# tree.create_node("Harry", "harry")  # root node
+# tree.create_node("Jane", "jane", parent="harry")
+# tree.create_node("Bill", "bill", parent="harry")
+# tree.create_node("Diane", "diane", parent="jane")
+# tree.create_node("Mary", "mary", parent="diane")
+# tree.create_node("Mark", "mark", parent="jane")
+# tree.show()
+#
+#
+# new_tree = Tree()
+# new_tree.create_node("n1", 1)  # root node
+# new_tree.create_node("n2", 2, parent=1)
+# new_tree.create_node("n3", 3, parent=1)
+# tree.paste('bill', new_tree)
+# tree.show()
+
+
+
+
+
+
+
+
 # root_count = max(dict_word, key=dict_word.get)
 # root_count = max(dict_word.items(), key = lambda x: x[1])[0]
 # print(root_count)
@@ -232,6 +157,8 @@ print(root_count)
 #                     tree.create_node(el, parent=k)
 #
 # tree.show()
+
+
 
 
 ##############################################################################
@@ -292,6 +219,8 @@ print(root_count)
 # print(type(doc))
 
 # doc = nlp(test_text)
+
+
 # spans = list(doc.sents)
 # print(spans)
 
@@ -352,27 +281,6 @@ print(root_count)
 #
 #     return list_root_word
 #
-
-# dataSet = pd.DataFrame(0, index=t_unic, columns=t_unic)
-# print(dataSet)
-# print('3 - ', symb)
-
-# #Анализ частоты слова
-# # tmp = tmp_text.replace('.', '').lower().split()
-# tmp = test_text.replace('.', '').lower().split()
-# # print(tmp)
-# # print(type(tmp))
-# count_word = Counter(tmp)
-# # print(count_word)
-#
-# t_count = max(count_word, key=count_word.get)
-# # print(len(t_count))
-#
-# t_unic = {el for el in tmp if len(el) > 3}
-# # print(t_unic)
-# # print(len(t_unic))
-
-
 # list_root_fierst = []
 # list_root_second = []
 # temp_list = {}
