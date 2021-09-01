@@ -83,29 +83,89 @@ def change_list2(array):
 
 # print(dict_word)
 # sort_list = []
+# count_dict = dict(Counter(el.rstrip('.').lower() for el in new_list.split() if len(el) > 3))
 
 dict_word = make_dict(test_text)
+new_dict = {}
 for k, v in dict(sorted(dict_word.items(), key=lambda x: len(x[1]), reverse=False)).items():
+    # print(k, ' - ', len(v), v)
+    if len(v) > 1:
+        new_list = "".join(v)
+        tmp_dict = {}
+        doc = nlp(new_list)
+        # print(new_list)
+        # print(count_dict)
+        for sent in doc.sents:
+            for token in sent:
+                # print(token.head.text, ' - ', token.dep_, ' - ', token.pos_, ' - ', token.text)
+                if token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and
+                    chunk = ''
+                    for w in token.children:
+                        if (w.dep_ == 'amod' and w.pos_ == 'ADJ') or (w.dep_ == 'amod' and w.pos_ == 'VERB'):
+                            chunk = chunk + w.text.lower() + ' '
+                            chunk = chunk + token.text.lower()
+                        if w.dep_ == 'nmod' and w.pos_ == 'NOUN':
+                            chunk = ' ' + chunk + w.text.lower()
+                            chunk = token.text.lower() + chunk
 
-    new_list = "".join(v)
-    count_dict = dict(Counter(el.rstrip('.').lower() for el in new_list.split() if len(el) > 3))
-    doc = nlp(new_list)
-    print(new_list)
-    print(count_dict)
-    for sent in doc.sents:
-        for el in sent:
-            if el.dep_ == 'NOUN' and el.pos_ == 'NOUN':
+                    if chunk != '':
+                        if chunk not in tmp_dict.keys():
+                            tmp_dict[chunk] = [sent]
+                        else:
+                            tmp_dict[chunk].append(sent)
+
+        if len(tmp_dict) != 0:
+            new_dict[k] = tmp_dict
+
+    # else:
+    #     new_dict[k] = v
+
+                    # print('*' * 150, chunk)
+
+    # print("*" * 100)
+print("*" * 100)
+print("*" * 100)
+print("*" * 100)
+
+for k, v in new_dict.items():
+    print(k, ' - ', len(v), v)
+
+
+
+
+# root_count = max(len(v) for k, v in new_dict.items())
+# root_count = max(new_dict.items(), key = lambda x: x[1])[0]
+
+for k, v in {k: v for k, v in new_dict.items() if len(v) == max([len(v) for _, v in new_dict.items()])}.items():
+    root_count = k
+# print(root_count)
+
+print(root_count)
+tree = Tree()
+tree.create_node(root_count.title(), root_count)  # root node
+
+for k, v in new_dict.items():
+    print(k, ' - ', v)
+    if k != root_count:
+        for token in new_dict[k]:
+            print(token)
+#             if new_dict[k][key] in new_dict[root_count]:
+#                 if len(v) > 1:
+#                     tree.create_node(k.title(), k, parent=root_count)
+#                     for el in v:
+#                         tree.create_node(el, parent=k)
+#
+# tree.show()
+
     #             return el.text
     # print(spans)
 
-    print(' - ' * 50)
-
-
+    # print(' - ' * 50)
 
     # if len(v) > 1:
     #     if dict_word[k][0] in dict_word[root_count]:
 
-    print(k, ' - ', len(v), v)
+    # print(k, ' - ', len(v), v)
 
 
 # dict_word = make_dict(test_text)
@@ -182,9 +242,9 @@ print_border('КОНЕЦ СИНТАКТИЧЕСКОГО РАЗБОРА SPACY')
 ##############################################################################
 #
 
-for k, v in {k: v for k, v in dict_word.items() if len(v) == max([len(v) for _, v in dict_word.items()])}.items():
-    root_count = k
-print(root_count)
+# for k, v in {k: v for k, v in dict_word.items() if len(v) == max([len(v) for _, v in dict_word.items()])}.items():
+#     root_count = k
+# print(root_count)
 
 # new_dict = {}
 # for k, v in dict_word.items():
