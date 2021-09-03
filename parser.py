@@ -1,6 +1,8 @@
 # -*- coding: utf8 -*-
 from settings import *
 from function import *
+from itertools import *
+
 
 pd.set_option('display.max_columns', None)
 
@@ -106,6 +108,7 @@ def find_noun_adj(text):
         for token in sent:
             if token.dep_ == 'ROOT' and token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
                 chunk = ''
+                # print('token -', token)
                 for w in token.children:
                     if w.dep_ == 'amod' or w.pos_ == 'ADJ':
                         chunk = chunk + w.text + ' '
@@ -154,12 +157,25 @@ set_root_adj = find_root_adj(test_text)
 
 
 set_noun_adj = find_noun_adj(test_text)
+
+tmp_list = []
+tmp_dict = {}
+tmp_set = set()
+
 for el in set_noun_adj:
     if len(el.split(" ")) > 1:
+        if len(el.lower().split(" ")) > 2:
+            tmp_list.extend(el.lower().split(" "))
+        com_set = itertools.combinations(el.lower().split(" "), 2)
+        tmp_set = set(tmp_list)
+        # com_set = itertools.combinations(tmp_set, 2)
         print(el)
+        print(tmp_list)
+        print(list(com_set))
 # print(set_noun_adj)
 # print(len(set_noun_adj))
-
+print(len(tmp_list))
+print(len(tmp_set))
 
 #Создаем словарь существительных в предложении
 dict_noun = make_dict_sent(test_text, list(set_root_noun))
