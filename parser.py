@@ -166,16 +166,16 @@ for el in set_noun_adj:
     if len(el.split(" ")) > 1:
         if len(el.lower().split(" ")) > 2:
             tmp_list.extend(el.lower().split(" "))
-        com_set = itertools.combinations(el.lower().split(" "), 2)
+        # com_set = itertools.combinations(el.lower().split(" "), 2)
         tmp_set = set(tmp_list)
-        # com_set = itertools.combinations(tmp_set, 2)
-        print(el)
-        print(tmp_list)
-        print(list(com_set))
+        com_set = itertools.combinations(tmp_set, 2)
+        # print(el)
+        # print(tmp_list)
+        # print(list(com_set))
 # print(set_noun_adj)
 # print(len(set_noun_adj))
-print(len(tmp_list))
-print(len(tmp_set))
+# print(len(tmp_list))
+# print(len(tmp_set))
 
 #Создаем словарь существительных в предложении
 dict_noun = make_dict_sent(test_text, list(set_root_noun))
@@ -188,29 +188,58 @@ dict_adj = make_dict_sent(test_text, list(set_root_adj))
 # print(len(dict_adj))
 
 # #Существительное + прилагательное
-# noun_adj_dict = {}
-# for key, value in dict(sorted(dict_noun.items(), key=lambda x: len(x[1]), reverse=False)).items():
-#     if len(mix_noun_adj(" ".join(value), list(set_root_adj))) != 0:
-#         noun_adj_dict[key] = mix_noun_adj(" ".join(value), list(set_root_adj))
-#
-#
-# for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
-#     # print(k, ' - ', len(v), ' - ', v)
-#     tree = Tree()
-#     tree.create_node(k.title(), k)  # root node
-#     for key, value in v.items():
-#         tree.create_node(k.title() + " " + key, key, parent=k)
-#         for token in value:
-#             tree.create_node(token, parent=key)
-#     tree.show()
-#
-#
+noun_adj_dict = {}
+for key, value in dict(sorted(dict_noun.items(), key=lambda x: len(x[1]), reverse=False)).items():
+    if len(mix_noun_adj(" ".join(value), list(set_root_adj))) != 0:
+        noun_adj_dict[key] = mix_noun_adj(" ".join(value), list(set_root_adj))
+
+
+for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+    # print(k, ' - ', len(v), ' - ', v)
+    for t, m in v.items():
+        print(k, ' - ', len(v), ' - ', t, ' - ', len(m), ' - ', m)
+        if len(m) == reduce(lambda a, b: a if (a > b) else b, m):
+
+
+
+adj_noun_dict = {}
+for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+    # print(k, ' - ', len(v), ' - ', v)
+    tree = Tree()
+    tree.create_node(k.title(), k)  # root node
+    for key, value in v.items():
+        tree.create_node(k.title() + " " + key, key, parent=k)
+        for token in value:
+            tree.create_node(token, parent=key)
+    tree.show()
+
+
 # # Прилагательное + Существительное
 # adj_noun_dict = {}
 # for key, value in dict(sorted(dict_adj.items(), key=lambda x: len(x[1]), reverse=False)).items():
 #     if len(mix_noun_adj(" ".join(value), list(set_root_noun))) != 0:
 #         adj_noun_dict[key] = mix_noun_adj(" ".join(value), list(set_root_noun))
 #
+#
+# for k, v in dict(sorted(adj_noun_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+#     print(k, ' - ', len(v), ' - ', v)
+#
+#
+#
+# def make_tree(adj_noun_dict):
+#     for k, v in dict(sorted(adj_noun_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+#         # print(k, ' - ', len(v), ' - ', v)
+#         tree = Tree()
+#         tree.create_node(k.title(), k)  # root node
+#         for key, value in v.items():
+#             tree.create_node(k.title() + " " + key, key, parent=k)
+#             for token in value:
+#                 tree.create_node(token, parent=key)
+#     return tree
+#
+# tree = make_tree(adj_noun_dict)
+# tree.show()
+
 #
 # for k, v in dict(sorted(adj_noun_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
 #     # print(k, ' - ', len(v), ' - ', v)
