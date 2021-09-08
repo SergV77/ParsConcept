@@ -32,17 +32,6 @@ test_text = reduce(lambda x, y: x + '. ' + y, text)
 print_border('КОНЕЦ СИНТАКТИЧЕСКОГО РАЗБОРА SPACY')
 
 
-#Создание словаря
-def make_dict(array):
-    dict_word = {}
-    for el in array.split('.'):
-        for symb in el.lower().split(' '):
-            if symb not in dict_word.keys():
-                if len(symb) > 3:
-                    dict_word[symb] = [el + '.']
-            else:
-                dict_word[symb].append(el + '.')
-    return dict_word
 
 
 
@@ -82,6 +71,7 @@ doc = nlp(test_text)
 #Находим корневые существительные
 def find_root_noun(text):
     set_root = set()
+    doc = nlp(text)
     for sent in doc.sents:
         for token in sent:
             if token.dep_ == 'ROOT' and token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
@@ -93,6 +83,7 @@ def find_root_noun(text):
 #Находим корневыые прилагательные
 def find_root_adj(text):
     set_root = set()
+    doc = nlp(text)
     for sent in doc.sents:
         for token in sent:
             if token.dep_ == 'ROOT' and token.pos_ == 'ADJ': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
@@ -101,22 +92,51 @@ def find_root_adj(text):
 
     return set_root
 
-#Находим корневыые прилагательные
+#Находим связанные с корневем прилагательные
 def find_noun_adj(text):
     set_root = set()
-    for sent in doc.sents:
-        for token in sent:
-            if token.dep_ == 'ROOT' and token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
-                chunk = ''
-                # print('token -', token)
-                for w in token.children:
-                    if w.dep_ == 'amod' or w.pos_ == 'ADJ':
-                        chunk = chunk + w.text + ' '
-                chunk = chunk + token.text
-                set_root.add(chunk)
+    doc = nlp(text)
+    for token in doc:
+        if token.dep_ == 'ROOT' and token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
+            chunk = ''
+            # print('token -', token)
+            for w in token.children:
+                if w.dep_ == 'amod' or w.pos_ == 'ADJ':
+                    chunk = chunk + w.text + ' '
+            chunk = chunk + token.text
+            set_root.add(chunk)
 
     return set_root
 
+def find_adj(text):
+    doc = nlp(text)
+    for token in doc:
+        if token.dep_ == 'ROOT' and token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
+            chunk = [w.text for w in token.children if w.dep_ == 'amod' and w.pos_ == 'ADJ']
+            if len(chunk) > 0:
+                return chunk, token.text
+        elif token.dep_ == 'ROOT' and token.pos_ == 'ADJ':
+            chunk = [w.text for w in token.children if w.dep_ == 'amod' and w.pos_ == 'ADJ']
+            if len(chunk) > 0:
+                return chunk, token.text
+
+        else:
+            continue
+
+
+
+
+#Создание словаря
+def make_dict(array):
+    dict_word = {}
+    for el in array.split('.'):
+        for symb in el.lower().split(' '):
+            if symb not in dict_word.keys():
+                if len(symb) > 3:
+                    dict_word[symb] = [el + '.']
+            else:
+                dict_word[symb].append(el + '.')
+    return dict_word
 
 
 
@@ -131,6 +151,46 @@ def make_dict_sent(array, root):
                     else:
                         dict_word[token].append(el.lstrip() + '.')
     return dict_word
+
+def take_dict(array):
+    tmp_dict = {}
+    for el in array:
+        tup_el = find_adj(el)
+        if tup_el:
+            list_adj, root = tup_el
+            if len(list_adj) > 1:
+                for word in list_adj:
+                    if word.lower() + ' ' + root not in tmp_dict.keys():
+                        tmp_dict[word.lower() + ' ' + root] = [el]
+                    else:
+                        tmp_dict[word.lower() + ' ' + root].append(el)
+            elif len(list_adj) == 1:
+                if list_adj[0].lower() + ' ' + root not in tmp_dict.keys():
+                    tmp_dict[list_adj[0].lower() + ' ' + root] = [el]
+                else:
+                    tmp_dict[list_adj[0].lower() + ' ' + root].append(el)
+            else:
+                continue
+
+    return tmp_dict
+
+#Формируем рекурсивно слвоарь словаре
+def make_recurs_dict(dict_item):
+    word_comb = {}
+    for key, value in dict_item.items():
+        if type(value) == dict:
+            make_recurs_dict(value)
+
+        elif type(value) == list:
+            if len(value) > 2:
+                word_comb[key] = take_dict(value)
+            else:
+                word_comb[key] = value
+        else:
+            continue
+
+    return word_comb
+
 
 
 def mix_noun_adj(text, list_adj):
@@ -194,24 +254,121 @@ for key, value in dict(sorted(dict_noun.items(), key=lambda x: len(x[1]), revers
         noun_adj_dict[key] = mix_noun_adj(" ".join(value), list(set_root_adj))
 
 
+itog_dict = {}
 for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
     # print(k, ' - ', len(v), ' - ', v)
-    for t, m in v.items():
-        print(k, ' - ', len(v), ' - ', t, ' - ', len(m), ' - ', m)
-        if len(m) == reduce(lambda a, b: a if (a > b) else b, m):
+
+    itog_dict[k] = make_recurs_dict(v)
+
+
+for key, value in itog_dict.items():
+    print(key, ' - ', len(value), ' - ', value)
 
 
 
-adj_noun_dict = {}
-for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+
+tree = Tree()
+tree.create_node("Harry", "harry")  # root node
+tree.create_node("Jane", "jane", parent="harry")
+tree.create_node("Bill", "bill", parent="harry")
+tree.create_node("Diane", "diane", parent="jane")
+tree.create_node("Mary", "mary", parent="diane")
+tree.create_node("Mark", "mark", parent="jane")
+
+
+
+new_tree = Tree()
+new_tree.create_node("n1", 1)  # root node
+new_tree.create_node("n2", 2, parent=1)
+new_tree.create_node("n3", 3, parent=1)
+tree.paste('bill', new_tree)
+tree.show()
+
+
+
+
+def creat_tree(dicts, parent):
+    tree = Tree()
+    for key, value in dicts.items():
+        tree.create_node(key, parent)
+        if type(value) == dict:
+            tree.paste(key, creat_tree(value, key))
+              # root node
+        else:
+            for token in value:
+                tree.create_node(token, parent=parent)
+
+    return tree
+
+
+
+# new_tree = Tree()
+# new_tree.create_node("n1", 1)  # root node
+# new_tree.create_node("n2", 2, parent=1)
+# new_tree.create_node("n3", 3, parent=1)
+# tree.paste('bill', new_tree)
+# tree.show()
+
+
+for key, value in itog_dict.items():
     # print(k, ' - ', len(v), ' - ', v)
     tree = Tree()
-    tree.create_node(k.title(), k)  # root node
-    for key, value in v.items():
-        tree.create_node(k.title() + " " + key, key, parent=k)
-        for token in value:
-            tree.create_node(token, parent=key)
+    tree.create_node(key.title(), key)  # root node
+    for k, v in value.items():
+        if type(v) == dict:
+            tree = creat_tree(v, k)
+        else:
+            for token in v:
+                tree.create_node(token, parent=k)
+    tree.paste(key, tree)
     tree.show()
+
+
+
+
+tree = Tree()
+tree.create_node("Harry", "harry")  # root node
+tree.create_node("Jane", "jane", parent="harry")
+tree.create_node("Bill", "bill", parent="harry")
+tree.create_node("Diane", "diane", parent="jane")
+tree.create_node("Mary", "mary", parent="diane")
+tree.create_node("Mark", "mark", parent="jane")
+tree.show()
+
+
+new_tree = Tree()
+new_tree.create_node("n1", 1)  # root node
+new_tree.create_node("n2", 2, parent=1)
+new_tree.create_node("n3", 3, parent=1)
+tree.paste('bill', new_tree)
+tree.show()
+
+
+
+
+
+
+
+
+
+# for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+#     # print(k, ' - ', len(v), ' - ', v)
+#     for t, m in v.items():
+#         print(k, ' - ', len(v), ' - ', t, ' - ', len(m), ' - ', m)
+#         if len(m) == reduce(lambda a, b: a if (a > b) else b, m):
+#             pass
+
+
+# adj_noun_dict = {}
+# for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+#     # print(k, ' - ', len(v), ' - ', v)
+#     tree = Tree()
+#     tree.create_node(k.title(), k)  # root node
+#     for key, value in v.items():
+#         tree.create_node(k.title() + " " + key, key, parent=k)
+#         for token in value:
+#             tree.create_node(token, parent=key)
+#     tree.show()
 
 
 # # Прилагательное + Существительное
