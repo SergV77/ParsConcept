@@ -2,6 +2,7 @@
 from settings import *
 from function import *
 from itertools import *
+from anytree import Node, RenderTree
 
 
 pd.set_option('display.max_columns', None)
@@ -254,6 +255,7 @@ for key, value in dict(sorted(dict_noun.items(), key=lambda x: len(x[1]), revers
         noun_adj_dict[key] = mix_noun_adj(" ".join(value), list(set_root_adj))
 
 
+
 itog_dict = {}
 for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
     # print(k, ' - ', len(v), ' - ', v)
@@ -261,45 +263,244 @@ for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=
     itog_dict[k] = make_recurs_dict(v)
 
 
+# def rec_tree(dict_arr, Node, root):
+#     for k, v in value.items():
+#         if type(v) == dict:
+#             k = rec_tree(dict_arr, Node, root)
+#         elif type(v) == list:
+#             for el in v:
+#                 el = Node(el, parent=k)
+#         else:
+#             continue
+#
+#     return Node(el)
+#
 for key, value in itog_dict.items():
     print(key, ' - ', len(value), ' - ', value)
+    root = Node(key)
+    if type(value) == dict:
+        for k, v in value.items():
+            k = Node(k, parent=root)
+            if type(v) == dict and len(v) != 0:
+                for t, m in v.items():
+                    t = Node(t, parent=k)
+                    if type(m) == dict and len(m) != 0:
+                        continue
+                    elif type(m) == list:
+                        for el in m:
+                            el = Node(el, parent=t)
+                    else:
+                        continue
+            elif type(v) == list:
+                for el in v:
+                    el = Node(el, parent=k)
+            else:
+                continue
+    else:
+        continue
+
+    for pre, fill, node in RenderTree(root):
+        print("%s%s" % (pre, node.name))
+
+
+#
+# def iteritems_recursive(itog_dict):
+#   for k, v in itog_dict.items():
+#     if isinstance(v, dict):
+#       for k1, v1 in iteritems_recursive(v):
+#         yield (k,)+k1, v1
+#     else:
+#       yield (k,),v
+#
+#
+#
+# for p, v in iteritems_recursive(itog_dict):
+#     print(p, "->", v)
+#
+
+
+
+#
+# class Tree(object):
+#     "Generic tree node."
+#     def __init__(self, name='root', children=None):
+#         self.name = name
+#         self.children = []
+#         if children is not None:
+#             for child in children:
+#                 self.add_child(child)
+#     def __repr__(self):
+#         return self.name
+#     def add_child(self, node):
+#         assert isinstance(node, Tree)
+#         self.children.append(node)
+#
+
+
+# #
+# fieldnames = ['id', 'name', 'master_id', 'parent_id']
+# with open('datas/table.csv', mode='w', encoding='utf-8', newline='') as file:
+#     file_writer = csv.DictWriter(file, delimiter=',', fieldnames=fieldnames)
+#     file_writer.writeheader()
+#     for key, value in itog_dict.items():
+#         if isinstance(value, list):
+#             for i, el in enumerate(value):
+#                 file_writer.writerow([i, key, j, value])
+#
+#
+# with open('db/dataset_black/disease_symptoms_names2.csv', mode='w', encoding='utf-8', newline='') as file:
+#     file_writer = csv.writer(file, delimiter=',', lineterminator='\n')
+#     file_writer.writerow(['id_symptoms', 'name_symptoms'])
+#     for key, value in itog_dict.items():
+#         file_writer.writerow([key, value])
+
+
+# all_list = []
+# parent = []
+#
+# def inter_list(all_dict):
+#     all_list = []
+#     for key, value in all_dict.items():
+#         if isinstance(value, dict):
+#             all_list.append(key)
+#             all_list.extend(inter_list(value))
+#         else:
+#             all_list.append(key)
+#             all_list.extend(value)
+#
+#     return all_list
+#
+#
+# all_array = inter_list(itog_dict)
+# print(all_array)
+# print(len(all_array))
+#
+# set_array = set(all_array)
+# print(len(set_array))
+
+#
+# def iteritems_recursive(itog_dict):
+#   for k, v in itog_dict.items():
+#     if isinstance(v, dict):
+#       for k1, v1 in iteritems_recursive(v):
+#         yield (k,)+k1, v1
+#     else:
+#       yield (k,),v
+#
 
 
 
 
-tree = Tree()
-tree.create_node("Harry", "harry")  # root node
-tree.create_node("Jane", "jane", parent="harry")
-tree.create_node("Bill", "bill", parent="harry")
-tree.create_node("Diane", "diane", parent="jane")
-tree.create_node("Mary", "mary", parent="diane")
-tree.create_node("Mark", "mark", parent="jane")
+
+
+# #Во-первых , найдите родителя по имени, используя anytrees find_by_attr
+# from anytree import Node, RenderTree, find_by_attr
+#
+# with open('input.txt', 'r') as f:
+#     lines = f.readlines()[1:]
+#     root = Node(lines[0].split(" ")[0])
+#
+#     for line in lines:
+#         line = line.split(" ")
+#         Node("".join(line[1:]).strip(), parent=find_by_attr(root, line[0]))
+#
+#     for pre, _, node in RenderTree(root):
+#         print("%s%s" % (pre, node.name))
+
+# #Во-вторых , просто кэшируйте их в диктанте, пока мы их создаем:
+# from anytree import Node, RenderTree, find_by_attr
+#
+# with open('input.txt', 'r') as f:
+#     lines = f.readlines()[1:]
+#     root = Node(lines[0].split(" ")[0])
+#     nodes = {}
+#     nodes[root.name] = root
+#
+#     for line in lines:
+#         line = line.split(" ")
+#         name = "".join(line[1:]).strip()
+#         nodes[name] = Node(name, parent=nodes[line[0]])
+#
+#     for pre, _, node in RenderTree(root):
+#         print("%s%s" % (pre, node.name))
 
 
 
-new_tree = Tree()
-new_tree.create_node("n1", 1)  # root node
-new_tree.create_node("n2", 2, parent=1)
-new_tree.create_node("n3", 3, parent=1)
-tree.paste('bill', new_tree)
-tree.show()
 
 
 
 
-def creat_tree(dicts, parent):
-    tree = Tree()
-    for key, value in dicts.items():
-        tree.create_node(key, parent)
-        if type(value) == dict:
-            tree.paste(key, creat_tree(value, key))
-              # root node
-        else:
-            for token in value:
-                tree.create_node(token, parent=parent)
 
-    return tree
 
+# root = Node("root", children=[
+# Node("sub0", children=[
+#     Node("sub0B", bar=109, foo=4),
+#     Node("sub0A", children=None),
+# ]),
+# Node("sub1", children=[
+#     Node("sub1A"),
+#     Node("sub1B", bar=8, children=[]),
+#     Node("sub1C", children=[
+#         Node("sub1Ca"),
+#     ]),
+# ]),
+# ])
+
+
+
+from anytree import NodeMixin, RenderTree
+
+class MyBaseClass(object):  # Just an example of a base class
+    foo = 4
+
+class MyClass(MyBaseClass, NodeMixin):  # Add Node feature
+    def __init__(self, name, length, width, parent=None, children=None):
+        super(MyClass, self).__init__()
+        self.name = name
+        self.length = length
+        self.width = width
+        self.parent = parent
+        if children:
+            self.children = children
+
+
+
+
+
+#
+# tree = Tree()
+# tree.create_node("Harry", "harry")  # root node
+# tree.create_node("Jane", "jane", parent="harry")
+# tree.create_node("Bill", "bill", parent="harry")
+# tree.create_node("Diane", "diane", parent="jane")
+# tree.create_node("Mary", "mary", parent="diane")
+# tree.create_node("Mark", "mark", parent="jane")
+#
+#
+#
+# new_tree = Tree()
+# new_tree.create_node("n1", 1)  # root node
+# new_tree.create_node("n2", 2, parent=1)
+# new_tree.create_node("n3", 3, parent=1)
+# tree.paste('bill', new_tree)
+# tree.show()
+#
+#
+#
+#
+# def creat_tree(dicts, parent):
+#     tree = Tree()
+#     for key, value in dicts.items():
+#         tree.create_node(key, parent)
+#         if type(value) == dict:
+#             tree.paste(key, creat_tree(value, key))
+#               # root node
+#         else:
+#             for token in value:
+#                 tree.create_node(token, parent=parent)
+#
+#     return tree
+#
 
 
 # new_tree = Tree()
@@ -310,44 +511,79 @@ def creat_tree(dicts, parent):
 # tree.show()
 
 
-for key, value in itog_dict.items():
-    # print(k, ' - ', len(v), ' - ', v)
-    tree = Tree()
-    tree.create_node(key.title(), key)  # root node
-    for k, v in value.items():
-        if type(v) == dict:
-            tree = creat_tree(v, k)
-        else:
-            for token in v:
-                tree.create_node(token, parent=k)
-    tree.paste(key, tree)
-    tree.show()
+# for key, value in itog_dict.items():
+#     # print(k, ' - ', len(v), ' - ', v)
+#     tree = Tree()
+#     tree.create_node(key.title(), key)  # root node
+#     for k, v in value.items():
+#         if type(v) == dict:
+#             tree = creat_tree(v, k)
+#         else:
+#             for token in v:
+#                 tree.create_node(token, parent=k)
+#     tree.paste(key, tree)
+#     tree.show()
+
+# from collections import defaultdict
+#
+# d = defaultdict(list)  # parent: List[children]
+# for k, v in itog_dict.items():
+#     d[v['parent']].append(k)
+# root = d[None][0]
+#
+# tree = Tree()
+# tree.create_node(root, root)
+#
+# agenda, seen = [root], set([root])
+# while agenda:
+#     nxt = agenda.pop()
+#     for child in d[nxt]:
+#         tree.create_node(child, child, parent=nxt)
+#         if child not in seen:
+#             agenda.append(child)
+#             seen.add(child)
 
 
 
+# from treelib import Node, Tree
+#
+# dict_ = itog_dict
+#
+# added = set()
+# tree = Tree()
+# while dict_:
+#     for key, value in dict_.items():
+#         if value['parent'] in added:
+#             tree.create_node(key, key, parent=value['parent'])
+#             added.add(key)
+#             dict_.pop(key)
+#             break
+#         elif value['parent'] is None:
+#             tree.create_node(key, key)
+#             added.add(key)
+#             dict_.pop(key)
+#             break
+#
+# tree.show()
 
-tree = Tree()
-tree.create_node("Harry", "harry")  # root node
-tree.create_node("Jane", "jane", parent="harry")
-tree.create_node("Bill", "bill", parent="harry")
-tree.create_node("Diane", "diane", parent="jane")
-tree.create_node("Mary", "mary", parent="diane")
-tree.create_node("Mark", "mark", parent="jane")
-tree.show()
 
-
-new_tree = Tree()
-new_tree.create_node("n1", 1)  # root node
-new_tree.create_node("n2", 2, parent=1)
-new_tree.create_node("n3", 3, parent=1)
-tree.paste('bill', new_tree)
-tree.show()
-
-
-
-
-
-
+#
+# tree = Tree()
+# tree.create_node("Harry", "harry")  # root node
+# tree.create_node("Jane", "jane", parent="harry")
+# tree.create_node("Bill", "bill", parent="harry")
+# tree.create_node("Diane", "diane", parent="jane")
+# tree.create_node("Mary", "mary", parent="diane")
+# tree.create_node("Mark", "mark", parent="jane")
+# tree.show()
+#
+#
+# new_tree = Tree()
+# new_tree.create_node("n1", 1)  # root node
+# new_tree.create_node("n2", 2, parent=1)
+# new_tree.create_node("n3", 3, parent=1)
+# tree.paste('bill', new_tree)
+# tree.show()
 
 
 
