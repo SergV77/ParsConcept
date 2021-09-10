@@ -2,7 +2,7 @@
 from settings import *
 from function import *
 from itertools import *
-from anytree import Node, RenderTree
+from anytree import Node, NodeMixin, RenderTree
 
 
 pd.set_option('display.max_columns', None)
@@ -67,6 +67,7 @@ def change_list2(array):
     return dict_word
 
 # test_text = 'Дезинфицирующие салфетки для гигиенической обработки рук. Диспенсерная система с сухими салфетками. Дозатор. Жидкое мыло. Жидкое мыло антибактериальное. Кожный антисептик для гигиенической обработки рук. Кожный антисептик для обработки рук хирургов. Кожный антисептик окрашенный для операционного и инъекционного поля. Кондиционер для белья. Контроль качества предстерилизационной очистки изделий медицинского назначения. Контроль концентрации рабочего раствора ДС. Крем для рук. Обеззараживание медицинских отходов (объектов одноразового использования и биологического материала). Отбеливатель. Салфетки для обработки инъекционного поля. Сменный блок салфеток. Средство дезинфекции поверхностей (текущей и генеральных уборок, в том числе санитарно-технического оборудования). Средство для быстрой дезинфекции небольших поверхностей. Средство для ДВУ эндоскопов. Средство для дезинфекции белья ручным способом. Средство для дезинфекции и мытья посуды. Средство для дезинфекции ИМН, совмещенной с ПСО, ручным или механизированным способом. Средство для дезинфекции на пищеблоке. Средство для дезинфекции пищевого яйца. Средство для дезинфекции при особоопасных инфекциях. Средство для очистки воды бассейна. Средство для очистки медицинских изделий и эндоскопов на основе ферментов. Средство для химической стерилизации. Средство моющее для мытья посуды. Средство моющее для полов. Средство моющее для стекол. Средство чистящее для прочистки труб и канализации. Стиральный порошок.'
+# test_text = 'Мышечная защита, накопление экссудата и болевой синдром; функциональные расстройства работы органов пищеварения и мочевыведения; общие признаки, обусловленные интоксикацией. Острая боль в животе – наиболее типичный признак развивающегося воспаления брюшины. Особенно сильно она проявляется при перфоративных перитонитах. При воспалении, не связанном с нарушением целостности стенок внутренних органов, боли менее выражены, усиливаются постепенно. Разрыв (перфорация) стенки полого органа обычно отдаёт резкой, простреливающей болью, которая похожа на колющий удар или выстрел из пистолета. После такого больной стремится лечь и не двигаться, так как малейшее движение причиняет сильною боль. Болезненно также сотрясание брюшины, дыхание, прикосновения к передней стенке живота. Иногда боль резка и сильна настолько, что пострадавший теряет сознание, а его пульс становится нитевидным.'
 doc = nlp(test_text)
 
 #Находим корневые существительные
@@ -263,18 +264,64 @@ for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=
     itog_dict[k] = make_recurs_dict(v)
 
 
-# def rec_tree(dict_arr, Node, root):
-#     for k, v in value.items():
-#         if type(v) == dict:
-#             k = rec_tree(dict_arr, Node, root)
-#         elif type(v) == list:
-#             for el in v:
-#                 el = Node(el, parent=k)
+
+#
+# from treelib import Node, Tree
+#
+#
+# def rec_tree(array):
+#     tree = Tree()
+#     for key, value in array.items():
+#         tree.create_node(key, key)  # root node
+#         if isinstance(value, list):
+#             for el in value:
+#                 return tree.create_node(el, el, parent=key)
+#         else:
+#             new_tree = rec_tree(value)
+#             if isinstance(new_tree, Tree):
+#                 return tree.paste(key, new_tree)
+#             else:
+#                 continue
+#
+#
+# #
+# tree = Tree()
+# for key, value in itog_dict.items():
+#     print(key, ' - ', len(value), ' - ', value)
+#     tree.create_node(key, key)  # root node
+#     if isinstance(value, list):
+#         for el in value:
+#             tree.create_node(el, el, parent=key)
+#     else:
+#         new_tree = rec_tree(value)
+#         if isinstance(new_tree, Tree):
+#             tree.paste(key, new_tree)
 #         else:
 #             continue
 #
-#     return Node(el)
+#     tree.show()
+
+
 #
+# tree = Tree()
+# tree.create_node("Harry", "harry")  # root node
+# tree.create_node("Jane", "jane", parent="harry")
+# tree.create_node("Bill", "bill", parent="harry")
+# tree.create_node("Diane", "diane", parent="jane")
+# tree.create_node("Mary", "mary", parent="diane")
+# tree.create_node("Mark", "mark", parent="jane")
+# tree.show()
+#
+#
+# new_tree = Tree()
+# new_tree.create_node("n1", 1)  # root node
+# new_tree.create_node("n2", 2, parent=1)
+# new_tree.create_node("n3", 3, parent=1)
+# tree.paste('bill', new_tree)
+# tree.show()
+
+
+
 for key, value in itog_dict.items():
     print(key, ' - ', len(value), ' - ', value)
     root = Node(key)
@@ -643,3 +690,51 @@ class MyClass(MyBaseClass, NodeMixin):  # Add Node feature
 #         for token in value:
 #             tree.create_node(token, parent=key)
 #     tree.show()
+
+
+
+
+#
+# from anytree import NodeMixin, RenderTree
+#
+#
+# class MyClass(NodeMixin):  # Add Node feature
+#     def __init__(self, name, parent=None):
+#         super(MyClass, self).__init__()
+#         self.name = name
+#         self.parent = parent
+#
+#
+#
+#
+# def print_anytree(startnode):
+#
+#     for pre, _, node in RenderTree(startnode):
+#         treestr = u"%s%s" % (pre, node.name)
+#         print(treestr.ljust(8))
+#
+# def rec_tree(dict_arr, MyClass):
+#     for k, v in value.items():
+#         if isinstance(v, list):
+#             for el in v:
+#                 return MyClass(el, parent=k)
+#         else:
+#             NodeMixin(rec_tree(v, MyClass), k)
+#
+#
+# if __name__ == '__main__':
+#     for key, value in itog_dict.items():
+#
+#         print(key, ' - ', len(value), ' - ', value)
+#         key = MyClass(key)
+#         if isinstance(value, list):
+#             for el in value:
+#                 el = MyClass(el, parent=key)
+#         else:
+#             NodeMixin(rec_tree(value, MyClass), key)
+#
+#     print_anytree(key)
+#
+
+
+
