@@ -7,69 +7,55 @@ from anytree import Node, NodeMixin, RenderTree
 
 pd.set_option('display.max_columns', None)
 
-nlp = spacy.load("ru_core_news_lg")
+nlp = spacy.load("ru_core_news_lg") # подключение русскоязычного модуля
 
+# загрузка определнной страницы файла
 file_name="data/НСИ - закупки.xlsx"
 rb = xlrd.open_workbook(file_name)
 sheet = rb.sheet_by_index(1)
 
 #Получаем список значений из всех записей
 vals = [sheet.row_values(rownum) for rownum in range(sheet.nrows)]
+print(vals)
 
+###########Создание файла исходнйо таблицы#######################
 
-print_border('СИНТАКТИЧЕСКИЙ РАЗБОР SPACY')
-text = []
+# преобразуем в кортеж код и имя полученных терминов
+print_border('Загрузка данных из таблицы EXCEL')
+tuple_text = []
 for el in vals[1:]:
-    el[1].replace('-', '')
-    text.append(el[1].replace('\n', '').replace('-', '_'))
-# print('text  -', text)
-# print('len(text) -', len(text))
-print_border('СОСТАВЛЕНИЕ ПРЕДЛОЖЕНИЙ')
-test_text = reduce(lambda x, y: x + '. ' + y, text)
+    tuple_text.append((el[0], el[1].replace('\n', '').replace('-', '_')))
 
-# print('test_text  -', test_text)
-# print('type(test_text) -', type(test_text))
+print('text  -', tuple_text)
 
-print_border('КОНЕЦ СИНТАКТИЧЕСКОГО РАЗБОРА SPACY')
+# сохраняем полученный кортеж в файл
+with open('data/table_one.csv', mode='w', encoding='utf-8', newline='') as file:
+    file_writer = csv.writer(file, delimiter=',', lineterminator='\n')
+    file_writer.writerow(['id', 'code', 'name'])
+    for i, el in enumerate(tuple_text):
+        file_writer.writerow([i+1, el[0], el[1]])
+print_border('Загрузка данных из таблицы EXCEL завершена')
 
+# загружаем полученный из исходного файл в виде словаря
+dict_data = []
+with open('data/table_one.csv', encoding='utf-8', newline='') as csvfile:
+    reader_dict = csv.DictReader(csvfile, delimiter=',')
+    for row in reader_dict:
+        print(row)
+        dict_data.append(row)
 
-
-
-
-def change_list(array):
-    dict_word = {}
-    for el in array:
-        # count_word = Counter(tmp)
-        # # print(count_word)
-        for symb in el.lower().split(' '):
-
-            if symb.rstrip(".") not in dict_word.keys():
-                if len(symb) > 3:
-                    dict_word[symb.rstrip(".")] = [el]
-            else:
-                dict_word[symb.rstrip(".")].append(el)
-    return dict_word
+# Составляем список наименований терминов
+list_text = [el['name'] for el in dict_data]
 
 
-def change_list2(array):
+# print_border('СОСТАВЛЕНИЕ ПРЕДЛОЖЕНИЙ')
+all_text = reduce(lambda x, y: x + '. ' + y, list_text)
+#
 
-    dict_word = {}
-    for el in array:
-        # count_word = Counter(tmp)
-        # # print(count_word)
-        for symb in el.lower().split(' '):
 
-            if symb.rstrip(".") not in dict_word.keys():
-                if len(symb) > 3:
-                    dict_word[symb.rstrip(".")] = [el]
-            else:
-                dict_word[symb.rstrip(".")].append(el)
-    return dict_word
+# print_border('СИНТАКТИЧЕСКИЙ РАЗБОР SPACY')
 
-# test_text = 'Дезинфицирующие салфетки для гигиенической обработки рук. Диспенсерная система с сухими салфетками. Дозатор. Жидкое мыло. Жидкое мыло антибактериальное. Кожный антисептик для гигиенической обработки рук. Кожный антисептик для обработки рук хирургов. Кожный антисептик окрашенный для операционного и инъекционного поля. Кондиционер для белья. Контроль качества предстерилизационной очистки изделий медицинского назначения. Контроль концентрации рабочего раствора ДС. Крем для рук. Обеззараживание медицинских отходов (объектов одноразового использования и биологического материала). Отбеливатель. Салфетки для обработки инъекционного поля. Сменный блок салфеток. Средство дезинфекции поверхностей (текущей и генеральных уборок, в том числе санитарно-технического оборудования). Средство для быстрой дезинфекции небольших поверхностей. Средство для ДВУ эндоскопов. Средство для дезинфекции белья ручным способом. Средство для дезинфекции и мытья посуды. Средство для дезинфекции ИМН, совмещенной с ПСО, ручным или механизированным способом. Средство для дезинфекции на пищеблоке. Средство для дезинфекции пищевого яйца. Средство для дезинфекции при особоопасных инфекциях. Средство для очистки воды бассейна. Средство для очистки медицинских изделий и эндоскопов на основе ферментов. Средство для химической стерилизации. Средство моющее для мытья посуды. Средство моющее для полов. Средство моющее для стекол. Средство чистящее для прочистки труб и канализации. Стиральный порошок.'
-# test_text = 'Мышечная защита, накопление экссудата и болевой синдром; функциональные расстройства работы органов пищеварения и мочевыведения; общие признаки, обусловленные интоксикацией. Острая боль в животе – наиболее типичный признак развивающегося воспаления брюшины. Особенно сильно она проявляется при перфоративных перитонитах. При воспалении, не связанном с нарушением целостности стенок внутренних органов, боли менее выражены, усиливаются постепенно. Разрыв (перфорация) стенки полого органа обычно отдаёт резкой, простреливающей болью, которая похожа на колющий удар или выстрел из пистолета. После такого больной стремится лечь и не двигаться, так как малейшее движение причиняет сильною боль. Болезненно также сотрясание брюшины, дыхание, прикосновения к передней стенке живота. Иногда боль резка и сильна настолько, что пострадавший теряет сознание, а его пульс становится нитевидным.'
-doc = nlp(test_text)
-
+test_text = all_text
 #Находим корневые существительные
 def find_root_noun(text):
     set_root = set()
@@ -94,21 +80,37 @@ def find_root_adj(text):
 
     return set_root
 
-#Находим связанные с корневем прилагательные
+# #Находим связанные с корневем прилагательные
+# def find_noun_adj(text):
+#     set_root = set()
+#     doc = nlp(text)
+#     for token in doc:
+#         if token.dep_ == 'ROOT' and token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
+#             chunk = ''
+#             # print('token -', token)
+#             for w in token.children:
+#                 if w.dep_ == 'amod' or w.pos_ == 'ADJ':
+#                     chunk = chunk + w.text + ' '
+#             chunk = chunk + token.text
+#             set_root.add(chunk)
+#
+#     return set_root
+
+#Находим связанные с корневем прилагательные дубль
 def find_noun_adj(text):
     set_root = set()
     doc = nlp(text)
+    list_word_comb = []
     for token in doc:
-        if token.dep_ == 'ROOT' and token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
-            chunk = ''
+        if token.dep_ == 'ROOT' or token.pos_ == 'NOUN': #token.dep_ == 'ROOT' and token.pos_ == 'NOUN'
             # print('token -', token)
             for w in token.children:
                 if w.dep_ == 'amod' or w.pos_ == 'ADJ':
-                    chunk = chunk + w.text + ' '
-            chunk = chunk + token.text
-            set_root.add(chunk)
+                    chunk = ''
+                    chunk = chunk + w.text.lower() + ' ' + token.text.lower()
+                    list_word_comb.append(chunk)
 
-    return set_root
+    return list_word_comb
 
 def find_adj(text):
     doc = nlp(text)
@@ -125,9 +127,6 @@ def find_adj(text):
         else:
             continue
 
-
-
-
 #Создание словаря
 def make_dict(array):
     dict_word = {}
@@ -139,8 +138,6 @@ def make_dict(array):
             else:
                 dict_word[symb].append(el + '.')
     return dict_word
-
-
 
 def make_dict_sent(array, root):
     dict_word = {}
@@ -193,8 +190,6 @@ def make_recurs_dict(dict_item):
 
     return word_comb
 
-
-
 def mix_noun_adj(text, list_adj):
     dict_word = {}
     for token in list_adj:
@@ -217,27 +212,15 @@ set_root_adj = find_root_adj(test_text)
 # print(set_root_adj)
 # print(len(set_root_adj))
 
-
-set_noun_adj = find_noun_adj(test_text)
-
-tmp_list = []
-tmp_dict = {}
-tmp_set = set()
-
-for el in set_noun_adj:
-    if len(el.split(" ")) > 1:
-        if len(el.lower().split(" ")) > 2:
-            tmp_list.extend(el.lower().split(" "))
-        # com_set = itertools.combinations(el.lower().split(" "), 2)
-        tmp_set = set(tmp_list)
-        com_set = itertools.combinations(tmp_set, 2)
-        # print(el)
-        # print(tmp_list)
-        # print(list(com_set))
-# print(set_noun_adj)
+#Находи прилагательные связанные с существительными в предложении
+list_noun_adj = find_noun_adj(test_text)
+print(len(list_noun_adj))
+set_noun_adj = set(list_noun_adj)
 # print(len(set_noun_adj))
-# print(len(tmp_list))
-# print(len(tmp_set))
+# for el in set_noun_adj:
+#     print(el)
+
+
 
 #Создаем словарь существительных в предложении
 dict_noun = make_dict_sent(test_text, list(set_root_noun))
@@ -256,18 +239,70 @@ for key, value in dict(sorted(dict_noun.items(), key=lambda x: len(x[1]), revers
         noun_adj_dict[key] = mix_noun_adj(" ".join(value), list(set_root_adj))
 
 
+# Создаем датасет нового концепта в дереве
+list_tupl_concepts = []
+for i, elem1 in enumerate(set(set_root_noun)):
+    for j, elem2 in enumerate(set(set_noun_adj)):
+        if elem1 in elem2.split():
+            list_tupl_concepts.append(((i+1)*10000+(j+1), elem2, (i+1)*100, elem1))
+        else:
+            list_tupl_concepts.append(((i+1)*100, elem1, 0, "Приборы и инструменты"))
 
-itog_dict = {}
-for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
-    # print(k, ' - ', len(v), ' - ', v)
-
-    itog_dict[k] = make_recurs_dict(v)
-
+# print(len(list_tupl_concepts))
+# print(len(set(list_tupl_concepts)))
+#
+#
+#
+# for el in sorted(set(list_tupl_concepts), key=lambda x: x[0]):
+#     print(el)
+#
+# Сохраняем датасет нового концепта в дереве
+with open('data/table_two.csv', mode='w', encoding='utf-8', newline='') as file:
+    file_writer = csv.writer(file, delimiter=',', lineterminator='\n')
+    file_writer.writerow(['id', 'name', 'parant_id', 'parant_name'])
+    for el in sorted(set(list_tupl_concepts), key=lambda x: x[0]):
+        file_writer.writerow([el[0], el[1], el[2], el[3]])
+print_border('Создание датасета завершено')
 
 
 #
-# from treelib import Node, Tree
+data_mix = []
+for elem1 in set(list_tupl_concepts):
+    for elem2 in dict_data:
+        if elem1[1] in elem2['name'].lower() or ' '.join(reversed(elem1[1].split())) in elem2['name'].lower():
+            data_mix.append((elem1[0], elem1[1], elem2['id'], elem2['name']))
 #
+#         for el in elem1[3].split():
+#             if el in elem2['name'].split():
+#                 data_mix.append((elem1[1], elem1[3], elem2['id'], elem2['name']))
+#
+
+print(len(data_mix))
+for el in data_mix:
+    print(el)
+
+with open('data/table_three.csv', mode='w', encoding='utf-8', newline='') as file:
+    file_writer = csv.writer(file, delimiter=',', lineterminator='\n')
+    file_writer.writerow(['id_class', 'name_class', 'id_termin', 'name_termin'])
+    for el in data_mix:
+        file_writer.writerow([el[0], el[1], el[2], el[3]])
+print_border('Создание датасета завершено')
+
+#
+#
+#
+#
+# itog_dict = {}
+# for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=False)).items():
+#     # print(k, ' - ', len(v), ' - ', v)
+#
+#     itog_dict[k] = make_recurs_dict(v)
+
+#*****************************************************************************************************
+
+
+from treelib import Node, Tree
+
 #
 # def rec_tree(array):
 #     tree = Tree()
@@ -320,35 +355,36 @@ for k, v in dict(sorted(noun_adj_dict.items(), key=lambda x: len(x[1]), reverse=
 # tree.paste('bill', new_tree)
 # tree.show()
 
-
-
-for key, value in itog_dict.items():
-    print(key, ' - ', len(value), ' - ', value)
-    root = Node(key)
-    if type(value) == dict:
-        for k, v in value.items():
-            k = Node(k, parent=root)
-            if type(v) == dict and len(v) != 0:
-                for t, m in v.items():
-                    t = Node(t, parent=k)
-                    if type(m) == dict and len(m) != 0:
-                        continue
-                    elif type(m) == list:
-                        for el in m:
-                            el = Node(el, parent=t)
-                    else:
-                        continue
-            elif type(v) == list:
-                for el in v:
-                    el = Node(el, parent=k)
-            else:
-                continue
-    else:
-        continue
-
-    for pre, fill, node in RenderTree(root):
-        print("%s%s" % (pre, node.name))
-
+#####################################################
+#***************************************************
+#
+# for key, value in itog_dict.items():
+#     print(key, ' - ', len(value), ' - ', value)
+#     root = Node(key)
+#     if type(value) == dict:
+#         for k, v in value.items():
+#             k = Node(k, parent=root)
+#             if type(v) == dict and len(v) != 0:
+#                 for t, m in v.items():
+#                     t = Node(t, parent=k)
+#                     if type(m) == dict and len(m) != 0:
+#                         continue
+#                     elif type(m) == list:
+#                         for el in m:
+#                             el = Node(el, parent=t)
+#                     else:
+#                         continue
+#             elif type(v) == list:
+#                 for el in v:
+#                     el = Node(el, parent=k)
+#             else:
+#                 continue
+#     else:
+#         continue
+#
+#     for pre, fill, node in RenderTree(root):
+#         print("%s%s" % (pre, node.name))
+#*********************************************************************
 
 #
 # def iteritems_recursive(itog_dict):
